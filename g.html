@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stopwatch</title>
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+        font-family: Arial, sans-serif;
+        margin: 0;
+      }
+      
+      .stopwatch {
+        text-align: center;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .display {
+        font-size: 3em;
+        margin-bottom: 10px;
+      }
+      
+      .controls {
+        margin-bottom: 10px;
+      }
+      
+      .control {
+        font-size: 1.2em;
+        margin: 5px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      
+      .control:hover {
+        background-color: #0056b3;
+      }
+      
+      .laps {
+        list-style-type: none;
+        padding: 0;
+        text-align: left;
+    
+      }
+      
+      .lap-item {
+        margin-bottom: 5px;
+      }
+      
+</style>
+</head>
+<body>
+<div class="stopwatch">
+  <div class="display">00:00:00.000</div>
+  <div class="controls">
+    <button class="control start" onclick="startStopwatch()">Start</button>
+    <button class="control stop" onclick="stopStopwatch()">Stop</button>
+    <button class="control lap" onclick="recordLap()">Lap</button>
+    <button class="control reset" onclick="resetStopwatch()">Reset</button>
+  </div>
+  <ul class="laps"></ul>
+</div>
+
+<script>
+    let stopwatchInterval;
+let isRunning = false;
+let startTime;
+let lastLapTime = 0; 
+let elapsedTime = 0;
+let laps = [];
+
+function startStopwatch() {
+  if (!isRunning) {
+    startTime = Date.now() - elapsedTime;
+    stopwatchInterval = setInterval(updateStopwatch, 10); 
+    document.querySelector('.start').textContent = 'Pause';
+    isRunning = true;
+  } else {
+    clearInterval(stopwatchInterval);
+    document.querySelector('.start').textContent = 'Resume';
+    isRunning = false;
+  }
+}
+
+function stopStopwatch() {
+  if (isRunning) {
+    clearInterval(stopwatchInterval);
+    document.querySelector('.start').textContent = 'Start';
+    isRunning = false;
+  }
+}
+
+function resetStopwatch() {
+  clearInterval(stopwatchInterval);
+  document.querySelector('.start').textContent = 'Start';
+  document.querySelector('.display').textContent = '00:00:00.000';
+  isRunning = false;
+  elapsedTime = 0;
+  laps = [];
+  lastLapTime = 0;
+  updateLapsUI();
+}
+
+function recordLap() {
+  if (isRunning) {
+    let lapTime = Date.now() - startTime;
+    let formattedLapTime = formatTime(lapTime);
+    
+    
+    let lapInterval = lapTime - lastLapTime;
+    if (lastLapTime === 0) {
+      lapInterval = lapTime; 
+    }
+    lastLapTime = lapTime;
+    
+    let formattedLapInterval = formatTime(lapInterval);
+    
+    laps.push({ lapTime: formattedLapTime, lapInterval: formattedLapInterval });
+    updateLapsUI();
+  }
+}
+
+function updateStopwatch() {
+  elapsedTime = Date.now() - startTime;
+  document.querySelector('.display').textContent = formatTime(elapsedTime);
+}
+
+function formatTime(time) {
+  let hours = Math.floor(time / (1000 * 60 * 60));
+  let minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
+  let seconds = Math.floor((time % (1000 * 60)) / 1000);
+  let milliseconds = Math.floor((time % 1000));
+  
+  return `${pad(hours, 2)}:${pad(minutes, 2)}:${pad(seconds, 2)}.${pad(milliseconds, 3)}`;
+}
+
+function pad(num, size) {
+  let s = num + "";
+  while (s.length < size) s = "0" + s;
+  return s;
+}
+
+function updateLapsUI() {
+  const lapsList = document.querySelector('.laps');
+  lapsList.innerHTML = '';
+  laps.forEach((lap, index) => {
+    const lapItem = document.createElement('li');
+    lapItem.classList.add('lap-item');
+    lapItem.innerHTML = `<strong>Lap ${index + 1}:</strong> ${lap.lapTime} (Interval: ${lap.lapInterval})`;
+    lapsList.appendChild(lapItem);
+  });
+}
+</script>
+</body>
+</html>
